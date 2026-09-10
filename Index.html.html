@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dough Calculator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Load Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-dark': '#1a1a1a',
+                        'brand-red': '#e03a30',
+                        'brand-yellow': '#f5c64c',
+                        'brand-gray-dark': '#2a2a2a',
+                        'brand-gray-light': '#808080'
+                    },
+                    fontFamily: {
+                        'display': ['Oswald', 'sans-serif'],
+                        'mono': ['Space Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom styles for range sliders to match the design */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #e03a30;
+            cursor: pointer;
+            margin-top: -10px;
+            border: 4px solid #f9fafb; /* White border to simulate the halo effect */
+            box-shadow: 0 0 0 2px #1a1a1a;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4a4a4a;
+            border-radius: 2px;
+        }
+
+        /* Minimalist Logo Styles */
+        .logo-container {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            line-height: 0.9;
+        }
+        
+        .logo-top {
+            color: #f5c64c; /* Brand Yellow */
+            font-size: 1.8rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .logo-bottom {
+            color: #e03a30; /* Brand Red */
+            font-size: 1.8rem;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-white font-mono antialiased min-h-screen pb-12">
+
+    <nav class="flex items-center justify-center p-6 border-b border-gray-800">
+        <!-- Minimalist CSS Logo -->
+        <div class="logo-container">
+            <span class="logo-top">Millar's</span>
+            <span class="logo-bottom">Pie</span>
+        </div>
+    </nav>
+
+    <header class="bg-brand-red p-6 md:p-12">
+        <h1 class="font-display font-bold text-5xl md:text-7xl leading-none text-white tracking-wide uppercase">
+            Dough
+        </h1>
+        <h1 class="font-display font-bold text-5xl md:text-7xl leading-none text-brand-yellow tracking-wide uppercase mb-2">
+            Calculator<span class="text-brand-yellow">.</span>
+        </h1>
+        <div class="h-1 w-full max-w-[200px] bg-brand-yellow mb-4"></div>
+        <p class="font-mono text-sm md:text-base text-white/90 tracking-wider uppercase mt-4 max-w-md">
+            Dial in your size, quantity, and hydration. <br>
+            Get exact ingredient weights.
+        </p>
+    </header>
+
+    <main class="p-6 md:p-12 max-w-2xl mx-auto">
+        <h2 class="font-mono font-bold text-xl tracking-widest uppercase mb-8">
+            Your Pizza Settings
+        </h2>
+
+        <!-- Size Slider -->
+        <div class="mb-10">
+            <div class="flex justify-between items-end mb-4">
+                <label class="font-mono font-bold tracking-widest uppercase text-sm">Pizza Size</label>
+                <span class="font-display font-bold text-2xl text-brand-yellow"><span id="sizeLabel">12</span>"</span>
+            </div>
+            <div class="relative pt-2">
+                <input type="range" id="sizeInput" min="8" max="20" value="12" step="1" class="w-full">
+                <div class="flex justify-between text-brand-gray-light text-xs mt-2 font-mono">
+                    <span>8"</span>
+                    <span>14"</span>
+                    <span>20"</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quantity Slider -->
+        <div class="mb-10">
+            <div class="flex justify-between items-end mb-4">
+                <label class="font-mono font-bold tracking-widest uppercase text-sm">Number of Pizzas</label>
+                <span class="font-display font-bold text-2xl text-brand-yellow" id="pizzaCountLabel">4</span>
+            </div>
+            <div class="relative pt-2">
+                <input type="range" id="pizzaCountInput" min="1" max="10" value="4" step="1" class="w-full">
+                <div class="flex justify-between text-brand-gray-light text-xs mt-2 font-mono">
+                    <span>1</span>
+                    <span>5</span>
+                    <span>10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hydration Selection (Replacing Thickness from original image) -->
+        <div class="mb-12">
+            <label class="font-mono font-bold tracking-widest uppercase text-sm block mb-4">Hydration Level</label>
+            <div class="grid grid-cols-3 gap-2 md:gap-4">
+                <button class="hydration-btn bg-brand-gray-dark border border-gray-700 hover:border-gray-500 text-brand-gray-light font-bold py-3 px-2 text-xs md:text-sm tracking-wider uppercase rounded transition-colors" data-hydration="60">
+                    Lower (60%)
+                </button>
+                <button class="hydration-btn bg-brand-red border border-brand-red text-white font-bold py-3 px-2 text-xs md:text-sm tracking-wider uppercase rounded transition-colors" data-hydration="69">
+                    Standard (69%)
+                </button>
+                <button class="hydration-btn bg-brand-gray-dark border border-gray-700 hover:border-gray-500 text-brand-gray-light font-bold py-3 px-2 text-xs md:text-sm tracking-wider uppercase rounded transition-colors" data-hydration="75">
+                    High (75%)
+                </button>
+            </div>
+            <!-- Hidden input to store current hydration -->
+            <input type="hidden" id="hydrationInput" value="69">
+        </div>
+
+        <!-- Results Section -->
+        <div class="bg-brand-gray-dark border border-gray-800 rounded-lg p-6 shadow-xl">
+            <div class="flex justify-between items-end mb-6 border-b border-gray-700 pb-2">
+                <h3 class="font-display font-bold text-2xl text-brand-yellow uppercase">Recipe</h3>
+                <div class="flex bg-brand-dark rounded p-1 shadow-inner">
+                    <button id="unitGrams" class="px-3 py-1 text-xs font-bold font-mono tracking-wider uppercase rounded bg-brand-red text-white transition-colors">Grams</button>
+                    <button id="unitVolume" class="px-3 py-1 text-xs font-bold font-mono tracking-wider uppercase rounded text-gray-400 hover:text-white transition-colors">Volume</button>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                    <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Flour (100%)</span>
+                    <span class="font-display text-xl font-bold" id="flourValue">0g</span>
+                </div>
+                <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                    <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Water (<span id="waterPctLabel">69</span>%)</span>
+                    <span class="font-display text-xl font-bold" id="waterValue">0g</span>
+                </div>
+                <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                    <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Salt</span>
+                    <span class="font-display text-xl font-bold" id="saltValue">0g</span>
+                </div>
+                <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                    <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Instant Yeast</span>
+                    <span class="font-display text-xl font-bold" id="yeastValue">0g</span>
+                </div>
+                <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                    <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Sugar</span>
+                    <span class="font-display text-xl font-bold" id="sugarValue">0g</span>
+                </div>
+                <div class="flex justify-between items-end pb-2">
+                    <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Olive Oil</span>
+                    <span class="font-display text-xl font-bold" id="oilValue">0g</span>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
+                 <span class="font-mono font-bold text-sm tracking-widest uppercase text-brand-yellow">Total Dough</span>
+                 <span class="font-display text-2xl font-bold text-brand-yellow" id="totalDoughValue">0g</span>
+            </div>
+            <div class="text-right mt-1">
+                 <span class="font-mono text-xs text-gray-500" id="perBallValue">(0g per ball)</span>
+            </div>
+        </div>
+
+        <div class="bg-brand-gray-dark border border-gray-800 rounded-lg p-6 shadow-xl mt-8">
+            <h3 class="font-display font-bold text-2xl text-brand-yellow uppercase mb-6 border-b border-gray-700 pb-2">Method</h3>
+            
+            <div class="space-y-8 font-mono text-sm md:text-base text-gray-300">
+                
+                <div>
+                    <h4 class="font-bold uppercase tracking-widest mb-3 text-brand-yellow text-xs md:text-sm">The Mix</h4>
+                    <ol class="list-decimal list-outside ml-5 space-y-3">
+                        <li>Pour lukewarm water into a large bowl. Add the yeast and mix until fully combined.</li>
+                        <li>Add the flour, salt, and sugar.</li>
+                        <li>Begin mixing with a sturdy spoon, slowly drizzling the olive oil into the center as you stir.</li>
+                        <li>Once stirring becomes difficult, wet your hands and continue mixing by hand until a rough, shaggy dough forms.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-bold uppercase tracking-widest mb-3 text-brand-yellow text-xs md:text-sm">The Folds</h4>
+                    <ol class="list-decimal list-outside ml-5 space-y-3" start="5">
+                        <li>Cover the bowl and let the dough rest at room temperature for <span class="text-white font-bold">20 minutes</span>.</li>
+                        <li>Remove the cover and perform a series of "stretch and folds" (pulling the edge of the dough up and into the center) until the dough begins to tighten.</li>
+                        <li>Form the dough into a ball, cover, and rest for another <span class="text-white font-bold">20 minutes</span>.</li>
+                        <li>Perform a second round of stretch and folds (about 6 folds) until the dough feels firm and smooth.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h4 class="font-bold uppercase tracking-widest mb-3 text-brand-yellow text-xs md:text-sm">Proof & Shape</h4>
+                    <ol class="list-decimal list-outside ml-5 space-y-3" start="9">
+                        <li>Cover and let the dough rest for <span class="text-white font-bold">1.5 hours</span> at room temperature.</li>
+                        <li>Turn the dough out onto a lightly floured or oiled surface. Cut the dough by weight into individual balls (reference the per-ball weight in the recipe above).</li>
+                        <li>Place the dough balls into a baking pan or proofing box, leaving about 2 inches of space between them. Lightly spray the tops with cooking oil.</li>
+                        <li>Cover and let rest for <span class="text-white font-bold">1 hour</span>. Your dough is now ready for pizza!</li>
+                    </ol>
+                </div>
+
+                <!-- Pro Tip Box -->
+                <div class="mt-8 bg-brand-dark border-l-4 border-brand-yellow p-5 rounded-r shadow-inner">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="ph-fill ph-lightbulb text-brand-yellow text-xl"></i>
+                        <h4 class="font-display font-bold text-xl text-brand-yellow uppercase tracking-wide">Pro Tip: Cold Ferment</h4>
+                    </div>
+                    <p class="text-sm leading-relaxed text-gray-400">
+                        For better flavor development, stop after <strong>Step 8</strong> (the second stretch and fold) and place the covered dough in the refrigerator overnight (up to 3 days). 
+                        <br><br>
+                        When you're ready for pizza time, remove the dough from the fridge <strong>2 hours prior</strong>. Divide into individual balls, cover, and let them rest at room temperature for those 2 hours before stretching.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Baseline Baker's Percentages (from the 435g flour recipe)
+        const BAKER_PCT = {
+            yeast: (5 / 435),   // ~0.0115
+            salt: (12 / 435),   // ~0.0276
+            sugar: (5 / 435),   // ~0.0115
+            oil: (5 / 435)      // ~0.0115
+        };
+
+        // Baseline: 4 x 12" pizzas = 762g total dough.
+        // Area of 12" pizza = π * 6^2 = ~113.1 sq inches
+        // Dough density multiplier based on baseline recipe (190.5g / 113.1 sq in = ~1.68 g/sq in)
+        const DOUGH_DENSITY_PER_SQ_INCH = 190.5 / (Math.PI * Math.pow(12 / 2, 2));
+
+        // Unit state
+        let currentUnit = 'grams';
+
+        // Approximate Grams to Volume Density
+        const DENSITY = {
+            flour: 120, // g per cup
+            water: 240, // g per cup
+            salt: 6,    // g per tsp
+            yeast: 3.1, // g per tsp
+            sugar: 4,   // g per tsp
+            oil: 14     // g per tbsp
+        };
+
+        function formatVolume(grams, ingredient) {
+            if (grams === 0) return "0";
+            
+            // Helper to turn decimals into readable fractions
+            function decimalToFraction(num) {
+                if (Number.isInteger(num)) return num.toString();
+                const whole = Math.floor(num);
+                const frac = num - whole;
+                let fracStr = "";
+                
+                if (Math.abs(frac - 0.25) < 0.05) fracStr = "¼";
+                else if (Math.abs(frac - 0.33) < 0.05) fracStr = "⅓";
+                else if (Math.abs(frac - 0.5) < 0.05) fracStr = "½";
+                else if (Math.abs(frac - 0.66) < 0.05) fracStr = "⅔";
+                else if (Math.abs(frac - 0.75) < 0.05) fracStr = "¾";
+                else return parseFloat(num.toFixed(1)).toString(); 
+                
+                return whole > 0 ? `${whole} ${fracStr}` : fracStr;
+            }
+
+            // Flour and Water (Cups rounded to nearest 1/4)
+            if (ingredient === 'flour' || ingredient === 'water') {
+                let cups = grams / DENSITY[ingredient];
+                let roundedCups = Math.round(cups * 4) / 4;
+                
+                if (roundedCups === 0) return "< ¼ cup";
+                
+                return `${decimalToFraction(roundedCups)} cup${roundedCups > 1 ? 's' : ''}`;
+                
+            // Oil (Tablespoons & Teaspoons)
+            } else if (ingredient === 'oil') {
+                let tbsp = grams / DENSITY.oil;
+                if (tbsp >= 1) {
+                    let rounded = Math.round(tbsp * 2) / 2; // Round to nearest 0.5
+                    return `${decimalToFraction(rounded)} tbsp`;
+                } else {
+                    let tsp = grams / (DENSITY.oil / 3);
+                    let rounded = Math.round(tsp * 2) / 2;
+                    return `${rounded > 0 ? decimalToFraction(rounded) : '< ½'} tsp`;
+                }
+                
+            // Salt, Yeast, Sugar (Teaspoons)
+            } else {
+                let tsp = grams / DENSITY[ingredient];
+                if (tsp >= 3) {
+                    let tbsp = Math.floor(tsp / 3);
+                    let remTsp = tsp % 3;
+                    let roundedRem = Math.round(remTsp * 4) / 4;
+                    let str = `${tbsp} tbsp`;
+                    if (roundedRem > 0) str += ` + ${decimalToFraction(roundedRem)} tsp`;
+                    return str;
+                }
+                let rounded = Math.round(tsp * 4) / 4; // Round to nearest 0.25
+                return `${rounded > 0 ? decimalToFraction(rounded) : '< ¼'} tsp`;
+            }
+        }
+
+        // DOM Elements
+        const sizeInput = document.getElementById('sizeInput');
+        const pizzaCountInput = document.getElementById('pizzaCountInput');
+        const hydrationInput = document.getElementById('hydrationInput');
+        const hydrationButtons = document.querySelectorAll('.hydration-btn');
+        
+        const sizeLabel = document.getElementById('sizeLabel');
+        const pizzaCountLabel = document.getElementById('pizzaCountLabel');
+        const waterPctLabel = document.getElementById('waterPctLabel');
+        
+        const unitGramsBtn = document.getElementById('unitGrams');
+        const unitVolumeBtn = document.getElementById('unitVolume');
+
+        const ui = {
+            flour: document.getElementById('flourValue'),
+            water: document.getElementById('waterValue'),
+            yeast: document.getElementById('yeastValue'),
+            salt: document.getElementById('saltValue'),
+            sugar: document.getElementById('sugarValue'),
+            oil: document.getElementById('oilValue'),
+            total: document.getElementById('totalDoughValue'),
+            perBall: document.getElementById('perBallValue')
+        };
+
+        function calculate() {
+            // Get current values
+            const sizeInches = parseFloat(sizeInput.value);
+            const numPizzas = parseInt(pizzaCountInput.value);
+            const hydrationPct = parseInt(hydrationInput.value) / 100;
+
+            // Update Labels
+            sizeLabel.textContent = sizeInches;
+            pizzaCountLabel.textContent = numPizzas;
+            waterPctLabel.textContent = (hydrationPct * 100);
+
+            // Calculate Area of target pizza size
+            const radius = sizeInches / 2;
+            const area = Math.PI * Math.pow(radius, 2);
+
+            // Calculate weight of a single dough ball based on area and baseline density
+            const doughPerPizza = area * DOUGH_DENSITY_PER_SQ_INCH;
+            
+            // Calculate Total Dough needed
+            const totalDough = numPizzas * doughPerPizza;
+
+            // Calculate Total Baker's Percentage sum
+            const totalPct = 1 + hydrationPct + BAKER_PCT.yeast + BAKER_PCT.salt + BAKER_PCT.sugar + BAKER_PCT.oil;
+
+            // Calculate ingredient weights
+            const flour = totalDough / totalPct;
+            const water = flour * hydrationPct;
+            const yeast = flour * BAKER_PCT.yeast;
+            const salt = flour * BAKER_PCT.salt;
+            const sugar = flour * BAKER_PCT.sugar;
+            const oil = flour * BAKER_PCT.oil;
+
+            // Format Output based on selected unit
+            if (currentUnit === 'grams') {
+                ui.flour.textContent = Math.round(flour) + 'g';
+                ui.water.textContent = Math.round(water) + 'g';
+                ui.yeast.textContent = Math.round(yeast) + 'g';
+                ui.salt.textContent = Math.round(salt) + 'g';
+                ui.sugar.textContent = Math.round(sugar) + 'g';
+                ui.oil.textContent = Math.round(oil) + 'g';
+                
+                ui.total.textContent = Math.round(totalDough) + 'g';
+                ui.perBall.textContent = `(${Math.round(doughPerPizza)}g per ball)`;
+            } else {
+                ui.flour.textContent = formatVolume(flour, 'flour');
+                ui.water.textContent = formatVolume(water, 'water');
+                ui.yeast.textContent = formatVolume(yeast, 'yeast');
+                ui.salt.textContent = formatVolume(salt, 'salt');
+                ui.sugar.textContent = formatVolume(sugar, 'sugar');
+                ui.oil.textContent = formatVolume(oil, 'oil');
+                
+                // Switch totals to Ounces for volume view
+                const totalOz = (totalDough / 28.3495).toFixed(1);
+                const perBallOz = (doughPerPizza / 28.3495).toFixed(1);
+                ui.total.textContent = totalOz + ' oz';
+                ui.perBall.textContent = `(${perBallOz} oz per ball)`;
+            }
+        }
+
+        // Handle Unit Toggles
+        unitGramsBtn.addEventListener('click', () => {
+            currentUnit = 'grams';
+            unitGramsBtn.classList.add('bg-brand-red', 'text-white');
+            unitGramsBtn.classList.remove('text-gray-400');
+            unitVolumeBtn.classList.remove('bg-brand-red', 'text-white');
+            unitVolumeBtn.classList.add('text-gray-400');
+            calculate();
+        });
+
+        unitVolumeBtn.addEventListener('click', () => {
+            currentUnit = 'volume';
+            unitVolumeBtn.classList.add('bg-brand-red', 'text-white');
+            unitVolumeBtn.classList.remove('text-gray-400');
+            unitGramsBtn.classList.remove('bg-brand-red', 'text-white');
+            unitGramsBtn.classList.add('text-gray-400');
+            calculate();
+        });
+
+        // Handle Hydration Button Clicks
+        hydrationButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active classes from all buttons
+                hydrationButtons.forEach(b => {
+                    b.classList.remove('bg-brand-red', 'border-brand-red', 'text-white');
+                    b.classList.add('bg-brand-gray-dark', 'border-gray-700', 'text-brand-gray-light');
+                });
+
+                // Add active classes to clicked button
+                this.classList.remove('bg-brand-gray-dark', 'border-gray-700', 'text-brand-gray-light');
+                this.classList.add('bg-brand-red', 'border-brand-red', 'text-white');
+
+                // Update hidden input and recalculate
+                hydrationInput.value = this.dataset.hydration;
+                calculate();
+            });
+        });
+
+        // Add event listeners to sliders
+        sizeInput.addEventListener('input', calculate);
+        pizzaCountInput.addEventListener('input', calculate);
+
+        // Run once on load
+        calculate();
+    </script>
+</body>
+</html>
