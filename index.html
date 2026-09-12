@@ -7,7 +7,7 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geom:wght@900&family=Oswald:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- Load Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
@@ -66,35 +66,23 @@
         /* Minimalist Logo Styles */
         .logo-container {
             display: inline-flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-family: 'Oswald', sans-serif;
             font-weight: 700;
-            text-transform: uppercase;
-            line-height: 0.9;
-        }
-        
-        .logo-top {
-            color: #f5c64c; /* Brand Yellow */
-            font-size: 1.8rem;
-            letter-spacing: 0.05em;
-        }
-        
-        .logo-bottom {
+            font-size: 2.5rem;
             color: #e03a30; /* Brand Red */
-            font-size: 1.8rem;
             letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body class="bg-brand-dark text-white font-mono antialiased min-h-screen pb-12">
 
-    <nav class="flex items-center justify-center p-6 border-b border-gray-800">
+    <nav class="flex items-center justify-start p-6 border-b border-gray-800">
         <!-- Minimalist CSS Logo -->
         <div class="logo-container">
-            <span class="logo-top">Millar's</span>
-            <span class="logo-bottom">Pie</span>
+            Millar's Pie
         </div>
     </nav>
 
@@ -167,6 +155,20 @@
             <input type="hidden" id="hydrationInput" value="69">
         </div>
 
+        <!-- Optional Ingredients -->
+        <div class="mb-12 flex space-x-6 md:space-x-10">
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleSugar" class="sr-only peer" checked>
+                <div class="relative w-11 h-6 bg-brand-gray-dark border-gray-600 border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-red peer-checked:after:bg-white"></div>
+                <span class="ml-3 font-mono font-bold tracking-widest uppercase text-sm text-gray-300">Sugar</span>
+            </label>
+            <label class="inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleOil" class="sr-only peer" checked>
+                <div class="relative w-11 h-6 bg-brand-gray-dark border-gray-600 border rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-red peer-checked:after:bg-white"></div>
+                <span class="ml-3 font-mono font-bold tracking-widest uppercase text-sm text-gray-300">Olive Oil</span>
+            </label>
+        </div>
+
         <!-- Results Section -->
         <div class="bg-brand-gray-dark border border-gray-800 rounded-lg p-6 shadow-xl">
             <div class="flex justify-between items-end mb-6 border-b border-gray-700 pb-2">
@@ -194,11 +196,11 @@
                     <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Instant Yeast</span>
                     <span class="font-display text-xl font-bold" id="yeastValue">0g</span>
                 </div>
-                <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                <div id="sugarRow" class="flex justify-between items-end border-b border-gray-800 pb-2 transition-opacity duration-300">
                     <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Sugar</span>
                     <span class="font-display text-xl font-bold" id="sugarValue">0g</span>
                 </div>
-                <div class="flex justify-between items-end pb-2">
+                <div id="oilRow" class="flex justify-between items-end pb-2 transition-opacity duration-300">
                     <span class="font-mono text-sm tracking-wider uppercase text-gray-300">Olive Oil</span>
                     <span class="font-display text-xl font-bold" id="oilValue">0g</span>
                 </div>
@@ -354,6 +356,8 @@
         const pizzaCountInput = document.getElementById('pizzaCountInput');
         const hydrationInput = document.getElementById('hydrationInput');
         const hydrationButtons = document.querySelectorAll('.hydration-btn');
+        const toggleSugar = document.getElementById('toggleSugar');
+        const toggleOil = document.getElementById('toggleOil');
         
         const sizeLabel = document.getElementById('sizeLabel');
         const pizzaCountLabel = document.getElementById('pizzaCountLabel');
@@ -378,6 +382,8 @@
             const sizeInches = parseFloat(sizeInput.value);
             const numPizzas = parseInt(pizzaCountInput.value);
             const hydrationPct = parseInt(hydrationInput.value) / 100;
+            const includeSugar = toggleSugar.checked;
+            const includeOil = toggleOil.checked;
 
             // Update Labels
             sizeLabel.textContent = sizeInches;
@@ -389,50 +395,61 @@
             const area = Math.PI * Math.pow(radius, 2);
 
             // Calculate weight of a single dough ball based on area and baseline density
-            const doughPerPizza = area * DOUGH_DENSITY_PER_SQ_INCH;
+        const doughPerPizza = area * DOUGH_DENSITY_PER_SQ_INCH;
+        
+        // Calculate Total Dough needed
+        const totalDough = numPizzas * doughPerPizza;
+
+        // Calculate nominal Total Baker's Percentage (assuming all ingredients are included)
+        // This ensures the base flour amount doesn't change when optional ingredients are toggled off
+        const nominalTotalPct = 1 + hydrationPct + BAKER_PCT.yeast + BAKER_PCT.salt + BAKER_PCT.sugar + BAKER_PCT.oil;
+
+        // Calculate ingredient weights based on the nominal total
+        const flour = totalDough / nominalTotalPct;
+        const water = flour * hydrationPct;
+        const yeast = flour * BAKER_PCT.yeast;
+        const salt = flour * BAKER_PCT.salt;
+        
+        // Calculate optional ingredients (set to 0 if toggled off)
+        const sugar = includeSugar ? (flour * BAKER_PCT.sugar) : 0;
+        const oil = includeOil ? (flour * BAKER_PCT.oil) : 0;
+
+        // Recalculate actual total dough and per-ball weight
+        const actualTotalDough = flour + water + yeast + salt + sugar + oil;
+        const actualDoughPerPizza = actualTotalDough / numPizzas;
+        
+        // Dim rows if disabled visually
+        document.getElementById('sugarRow').style.opacity = includeSugar ? '1' : '0.3';
+        document.getElementById('oilRow').style.opacity = includeOil ? '1' : '0.3';
+
+        // Format Output based on selected unit
+        if (currentUnit === 'grams') {
+            ui.flour.textContent = Math.round(flour) + 'g';
+            ui.water.textContent = Math.round(water) + 'g';
+            ui.yeast.textContent = Math.round(yeast) + 'g';
+            ui.salt.textContent = Math.round(salt) + 'g';
+            ui.sugar.textContent = Math.round(sugar) + 'g';
+            ui.oil.textContent = Math.round(oil) + 'g';
             
-            // Calculate Total Dough needed
-            const totalDough = numPizzas * doughPerPizza;
-
-            // Calculate Total Baker's Percentage sum
-            const totalPct = 1 + hydrationPct + BAKER_PCT.yeast + BAKER_PCT.salt + BAKER_PCT.sugar + BAKER_PCT.oil;
-
-            // Calculate ingredient weights
-            const flour = totalDough / totalPct;
-            const water = flour * hydrationPct;
-            const yeast = flour * BAKER_PCT.yeast;
-            const salt = flour * BAKER_PCT.salt;
-            const sugar = flour * BAKER_PCT.sugar;
-            const oil = flour * BAKER_PCT.oil;
-
-            // Format Output based on selected unit
-            if (currentUnit === 'grams') {
-                ui.flour.textContent = Math.round(flour) + 'g';
-                ui.water.textContent = Math.round(water) + 'g';
-                ui.yeast.textContent = Math.round(yeast) + 'g';
-                ui.salt.textContent = Math.round(salt) + 'g';
-                ui.sugar.textContent = Math.round(sugar) + 'g';
-                ui.oil.textContent = Math.round(oil) + 'g';
-                
-                ui.total.textContent = Math.round(totalDough) + 'g';
-                ui.perBall.textContent = `(${Math.round(doughPerPizza)}g per ball)`;
-            } else {
-                ui.flour.textContent = formatVolume(flour, 'flour');
-                ui.water.textContent = formatVolume(water, 'water');
-                ui.yeast.textContent = formatVolume(yeast, 'yeast');
-                ui.salt.textContent = formatVolume(salt, 'salt');
-                ui.sugar.textContent = formatVolume(sugar, 'sugar');
-                ui.oil.textContent = formatVolume(oil, 'oil');
-                
-                // Switch totals to Ounces for volume view
-                const totalOz = (totalDough / 28.3495).toFixed(1);
-                const perBallOz = (doughPerPizza / 28.3495).toFixed(1);
-                ui.total.textContent = totalOz + ' oz';
-                ui.perBall.textContent = `(${perBallOz} oz per ball)`;
-            }
+            ui.total.textContent = Math.round(actualTotalDough) + 'g';
+            ui.perBall.textContent = `(${Math.round(actualDoughPerPizza)}g per ball)`;
+        } else {
+            ui.flour.textContent = formatVolume(flour, 'flour');
+            ui.water.textContent = formatVolume(water, 'water');
+            ui.yeast.textContent = formatVolume(yeast, 'yeast');
+            ui.salt.textContent = formatVolume(salt, 'salt');
+            ui.sugar.textContent = formatVolume(sugar, 'sugar');
+            ui.oil.textContent = formatVolume(oil, 'oil');
+            
+            // Switch totals to Ounces for volume view
+            const totalOz = (actualTotalDough / 28.3495).toFixed(1);
+            const perBallOz = (actualDoughPerPizza / 28.3495).toFixed(1);
+            ui.total.textContent = totalOz + ' oz';
+            ui.perBall.textContent = `(${perBallOz} oz per ball)`;
         }
+    }
 
-        // Handle Unit Toggles
+    // Handle Unit Toggles
         unitGramsBtn.addEventListener('click', () => {
             currentUnit = 'grams';
             unitGramsBtn.classList.add('bg-brand-red', 'text-white');
@@ -473,6 +490,8 @@
         // Add event listeners to sliders
         sizeInput.addEventListener('input', calculate);
         pizzaCountInput.addEventListener('input', calculate);
+        toggleSugar.addEventListener('change', calculate);
+        toggleOil.addEventListener('change', calculate);
 
         // Run once on load
         calculate();
